@@ -15,6 +15,14 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
 
+    // ruta usada por cliente anonimos
+    Route::post("/create-client-internal", [UserController::class, 'createClientInternal']);
+    // crear y actualizar reservas sin auth siendo cliente sin registrar 
+    Route::post('/reservations', [ReservationController::class, 'store']);
+    // un cron habilita esta url 
+    Route::put('/reservations/{id}', [ReservationController::class, 'update']);
+
+
     // 🔹 Rutas protegidas por token
     Route::middleware('auth:sanctum')->group(function () {
 
@@ -38,8 +46,9 @@ Route::prefix('v1')->group(function () {
 
         // Reservas
         Route::get('/reservations', [ReservationController::class, 'index']);
-        Route::post('/reservations', [ReservationController::class, 'store']);
+        
         Route::get('/reservations/{id}', [ReservationController::class, 'show']);
+        // posiblemente no dejar update de reservation
         Route::put('/reservations/{id}', [ReservationController::class, 'update']);
         Route::delete('/reservations/{id}', [ReservationController::class, 'destroy']);
 

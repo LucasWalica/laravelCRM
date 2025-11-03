@@ -16,6 +16,9 @@ return new class extends Migration {
             $table->enum('status', ['pending','confirmed','cancelled','completed','no_show'])->default('pending');
             $table->integer('aforo')->nullable();
             $table->timestamps();
+            // token para usuarios no registrados
+            $table->uuid('token')->nullable()->unique();
+            $table->timestamp('token_expires_at')->nullable();
         });
     }
 

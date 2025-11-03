@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\BusinessService;
 use App\Models\Business;
+use App\Http\Resources\BusinessServiceResource;
 
 class BusinessServiceController extends Controller
 {
@@ -23,7 +24,7 @@ class BusinessServiceController extends Controller
         }
 
         $services = BusinessService::where('business_id', $businessId)->get();
-        return response()->json($services);
+        return BusinessServiceResource::collection($services);
     }
 
     // 🔹 Crear un nuevo servicio (solo si el negocio pertenece al propietario)
@@ -76,7 +77,7 @@ class BusinessServiceController extends Controller
             return response()->json(['error' => 'No autorizado'], 403);
         }
 
-        return response()->json($service);
+        return BusinessServiceResource::collection($service);
     }
 
     // 🔹 Actualizar un servicio (solo si el negocio es del propietario)

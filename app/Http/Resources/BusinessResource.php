@@ -33,6 +33,7 @@ class BusinessResource extends JsonResource
                 'id' => $this->user->id ?? null,
                 'name' => $this->user->name ?? null,
                 'email' => $this->user->email ?? null,
+                'phone' => $this->user->phone ?? null,
             ],
 
             // 🔹 Servicios del negocio (si están cargados con ->load('services'))

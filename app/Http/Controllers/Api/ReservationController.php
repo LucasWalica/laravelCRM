@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\BusinessService;
 use App\Models\Business;
+use App\Models\User;
+use Illuminate\Support\Str;
+use App\Http\Resources\ReservationResource;
 
 class ReservationController extends Controller
 {
@@ -29,7 +32,7 @@ class ReservationController extends Controller
                 ->get();
         }
 
-        return response()->json($reservations);
+        return ReservationResource::collection($reservations);
     }
 
     // 🔹 Crear reserva (por cliente o propietario)
@@ -62,6 +65,7 @@ class ReservationController extends Controller
             return response()->json(['error' => 'Aforo completo para esta hora'], 400);
         }
 
+
         $reservation = Reservation::create([
             'fk_user_client' => $clientId,
             'fk_business_service' => $service->id,
@@ -75,6 +79,49 @@ class ReservationController extends Controller
             'message' => 'Reserva creada correctamente',
             'reservation' => $reservation,
         ], 201);
+    }   
+
+    // crear reserva para user no registrado
+    public function storePublic(Request $request)
+    {
+        $request->validate([
+            'client_email' => 'nullable|email',
+            'client_phone' => 'nullable|string',
+            'client_name' => 'nullable|string',
+            'fk_business_service' => 'required|exists:business_services,id',
+            'time_start' => 'required|date|after:now',
+        ]);
+
+        $service = BusinessService::findOrFail($request->fk_business_service);
+
+        // Crear o recuperar usuario "cliente" basado en su email o teléfono
+        $client = User::firstOrCreate(
+            ['email' => $request->client_email],
+            [
+                'name' => $request->client_name ?? 'Cliente invitado',
+                'phone' => $request->client_phone,
+                'password' => bcrypt(Str::random(10)),
+                'role' => 'client',
+                'created_by' => 'anonymous',
+            ]
+        );
+
+        // Crear token único de acceso
+        $token = Str::uuid();
+
+        $reservation = Reservation::create([
+            'fk_user_client' => $client->id,
+            'fk_business_service' => $service->id,
+            'time_start' => $request->time_start,
+            'status' => 'pending',
+            'token' => $token,
+            'token_expires_at' => now()->addDays(3),
+        ]);
+
+        return response()->json([
+            'message' => 'Reserva creada correctamente',
+            'reservation' => $reservation,
+        ]);
     }
 
     // 🔹 Mostrar una reserva concreta
@@ -97,7 +144,7 @@ class ReservationController extends Controller
             return response()->json(['error' => 'No autorizado'], 403);
         }
 
-        return response()->json($reservation);
+        return ReservationResource::collection($reservation);
     }
 
     // 🔹 Actualizar estado (solo propietario)
@@ -126,6 +173,33 @@ class ReservationController extends Controller
             'reservation' => $reservation,
         ]);
     }
+
+    public function updatePublic(Request $request, string $token)
+{
+    // Buscar reserva por token y comprobar que no esté expirado
+    $reservation = Reservation::where('token', $token)
+        ->where('token_expires_at', '>', now())
+        ->first();
+
+    if (!$reservation) {
+        return response()->json(['error' => 'Token inválido o expirado'], 403);
+    }
+
+    // Validar nuevo estado
+    $request->validate([
+        'status' => 'required|in:confirmed,cancelled',
+    ]);
+
+    // Actualizar estado
+    $reservation->update([
+        'status' => $request->status,
+    ]);
+
+    return response()->json([
+        'message' => 'Estado de la reserva actualizado correctamente.',
+        'reservation' => $reservation,
+    ]);
+}
 
     // 🔹 Cancelar reserva (cliente o propietario)
     public function cancel(Request $request, $id)

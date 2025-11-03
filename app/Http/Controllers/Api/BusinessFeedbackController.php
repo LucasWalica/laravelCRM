@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\BusinessFeedback;
 use App\Models\Business;
 use App\Models\Reservation;
+use App\Http\Resources\BusinessFeedbackResource;
 
 class BusinessFeedbackController extends Controller
 {
@@ -30,7 +31,7 @@ class BusinessFeedbackController extends Controller
                 ->get();
         }
 
-        return response()->json($feedbacks);
+        return BusinessFeedbackResource::collection($feedbacks);
     }
 
     // 🔹 Crear feedback (solo cliente)
@@ -92,7 +93,7 @@ class BusinessFeedbackController extends Controller
             return response()->json(['error' => 'Feedback no encontrado'], 404);
         }
 
-        return response()->json($feedback);
+        return BusinessFeedbackResource::collection($feedback);
     }
 
     // 🔹 Eliminar feedback (solo propietario o cliente que lo creó)

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Business;
+use App\Http\Resources\BusinessResource;
 
 class BusinessController extends Controller
 {
@@ -39,7 +40,7 @@ class BusinessController extends Controller
     public function index(Request $request)
     {
         $businesses = Business::where('user_id', $request->user()->id)->get();
-        return response()->json($businesses);
+        return BusinessResource::collection($businesses);
     }
 
     // 🔹 Ver negocio específico
@@ -49,7 +50,7 @@ class BusinessController extends Controller
         if (!$business) {
             return response()->json(['error' => 'Negocio no encontrado'], 404);
         }
-        return response()->json($business);
+        return BusinessResource::collection($business);
     }
 
     // 🔹 Actualizar negocio

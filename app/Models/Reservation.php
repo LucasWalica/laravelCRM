@@ -16,6 +16,8 @@ class Reservation extends Model
         'estimated_time_end',
         'status',
         'aforo',
+        'token',
+        'token_expires_at',
     ];
 
     // Relaciones

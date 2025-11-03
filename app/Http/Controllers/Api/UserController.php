@@ -74,6 +74,30 @@ class UserController extends Controller
         ]);
     }
 
+    public function createClientInternal(Request $request) {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|unique:users,phone',
+            'email' => 'nullable|email|unique:users,email',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'surname1' => $request->surname1,
+            'surname2' => $request->surname2,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'role' => 'client',
+            'created_by' => 'client',
+            'password' => Hash::make(uniqid()), // password temporal
+        ]);
+
+        return response()->json([
+            'message' => 'Cliente creado correctamente',
+            'user' => $user
+        ]);
+    }
+
     public function login(Request $request) {
         $request->validate([
             'email' => 'nullable|email',
