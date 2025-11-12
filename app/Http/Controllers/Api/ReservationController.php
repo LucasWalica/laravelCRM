@@ -175,31 +175,31 @@ class ReservationController extends Controller
     }
 
     public function updatePublic(Request $request, string $token)
-{
-    // Buscar reserva por token y comprobar que no esté expirado
-    $reservation = Reservation::where('token', $token)
-        ->where('token_expires_at', '>', now())
-        ->first();
+    {
+        // Buscar reserva por token y comprobar que no esté expirado
+        $reservation = Reservation::where('token', $token)
+            ->where('token_expires_at', '>', now())
+            ->first();
 
-    if (!$reservation) {
-        return response()->json(['error' => 'Token inválido o expirado'], 403);
+        if (!$reservation) {
+            return response()->json(['error' => 'Token inválido o expirado'], 403);
+        }
+
+        // Validar nuevo estado
+        $request->validate([
+            'status' => 'required|in:confirmed,cancelled',
+        ]);
+
+        // Actualizar estado
+        $reservation->update([
+            'status' => $request->status,
+        ]);
+
+        return response()->json([
+            'message' => 'Estado de la reserva actualizado correctamente.',
+            'reservation' => $reservation,
+        ]);
     }
-
-    // Validar nuevo estado
-    $request->validate([
-        'status' => 'required|in:confirmed,cancelled',
-    ]);
-
-    // Actualizar estado
-    $reservation->update([
-        'status' => $request->status,
-    ]);
-
-    return response()->json([
-        'message' => 'Estado de la reserva actualizado correctamente.',
-        'reservation' => $reservation,
-    ]);
-}
 
     // 🔹 Cancelar reserva (cliente o propietario)
     public function cancel(Request $request, $id)

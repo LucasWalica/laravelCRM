@@ -18,9 +18,9 @@ Route::prefix('v1')->group(function () {
     // ruta usada por cliente anonimos
     Route::post("/create-client-internal", [UserController::class, 'createClientInternal']);
     // crear y actualizar reservas sin auth siendo cliente sin registrar 
-    Route::post('/reservations', [ReservationController::class, 'store']);
+    Route::post("/reservation-public", [ReservationController::class, "storePublic"]);
     // un cron habilita esta url 
-    Route::put('/reservations/{id}', [ReservationController::class, 'update']);
+    Route::put('/reservations/update/{token}', [ReservationController::class, 'updatePublic']);
 
 
     // 🔹 Rutas protegidas por token
@@ -49,9 +49,13 @@ Route::prefix('v1')->group(function () {
         
         Route::get('/reservations/{id}', [ReservationController::class, 'show']);
         // posiblemente no dejar update de reservation
+        Route::post('/reservations', [ReservationController::class, 'store']);
         Route::put('/reservations/{id}', [ReservationController::class, 'update']);
         Route::delete('/reservations/{id}', [ReservationController::class, 'destroy']);
-
+        // endpoint para cancelar siendo propietario 
+        Route::put('/reservations/{id}/owner-cancel', [ReservationController::class, 'cancel']);
+        
+        
         // Feedbacks
         Route::get('/feedbacks', [BusinessFeedbackController::class, 'index']);
         Route::post('/feedbacks', [BusinessFeedbackController::class, 'store']);
